@@ -1,19 +1,26 @@
 # src/air_control/main.py
-from pynput.keyboard import Key, Controller
-from pynput import keyboard
+from pynput.keyboard import Key, Controller, Listener
 
+# Create keyboard controller
+kb = Controller()
 
-# press and release the 'a' key
-keyboard = Controller()
-keyboard.press('a')
-keyboard.release('a')
+# --- DEMO OUTPUT (comment these while testing listener if needed) ---
+kb.press('a')
+kb.release('a')
+kb.type('Hello World')
 
-# type a full word
-keyboard.type('Hello World')
+def on_press(key):
+    try:
+        print(f"Alphanumeric key {key.char} pressed")
+    except AttributeError:
+        print(f"Special key {key} pressed")
 
-# special keys
-keyboard.press(Key.space)
-keyboard.release(Key.space)
-keyboard.press(Key.enter)
-keyboard.release(Key.enter)
+def on_release(key):
+    print(f"Key {key} released")
+    if key == Key.esc:
+        print("ESC pressed, exiting listener")
+        return False  # stop listener
 
+# Start listening
+with Listener(on_press=on_press, on_release=on_release) as listener:
+    listener.join()
