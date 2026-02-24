@@ -1,25 +1,17 @@
 import cv2
 import mediapipe as mp
-import pyautogui
 import time
 
 mp_hands = mp.solutions.hands # detect hands
 mp_draw = mp.solutions.drawing_utils
 
-# map camera pixels to screen pixels as screen bigger
-screen_width, screen_height = pyautogui.size()
-
 cap = cv2.VideoCapture(0)
 # camera resolution
-cap.set(3, 640) # set picture resolution, where 3 is width identifier
-cap.set(4, 480) # height identifier 
-
-# avg the points to treat hand as a single point
-PALM_IDS = [0, 5, 9, 13, 17] # bottom of the finger joints
-
+cap.set(3, 1280) # set picture resolution, where 3 is width identifier
+cap.set(4, 720) # height identifier 
 def main():
     with mp_hands.Hands(
-        max_num_hands=1,
+        max_num_hands=2,
         min_detection_confidence=0.7,
         min_tracking_confidence=0.7,
     ) as hands:
@@ -52,15 +44,36 @@ def main():
                         mp_hands.HAND_CONNECTIONS, # lines between hands
                     )
 
-                cx = sum(hand_landmarks.landmark[id].x for id in PALM_IDS) / len(PALM_IDS) # find avg x
-                cy = sum(hand_landmarks.landmark[id].y for id in PALM_IDS) / len(PALM_IDS) 
+                    finger_tips = {
+                        # each finger has 4 nodes starting from the bottom
+                        "Thumb": hand_landmarks.landmark[4],
+                        "Index": hand_landmarks.landmark[8],
+                        "Middle": hand_landmarks.landmark[12],
+                        "Ring": hand_landmarks.landmark[16],
+                        "Pinky": hand_landmarks.landmark[20],
+                    }
 
-                cx = int(cx * w)
-                cy = int(cy * h)
+                    # loop to display name of finger
+                    for name, landmark in finger_tips.items():
+                        x, y = int(landmark.x * w), int(landmark.y * h)
+                        cv2.putText(
+                            img, # where
+                            name, # name of what to put (finger)
+                            (x, y - 10), # coor and -10 to lift up above finger
+                            cv2.FONT_HERSHEY_SIMPLEX, # font
+                            0.5, # font thickness
+                            (255, 255, 255), # color,
+                            1, # linetype
+                        )
 
-                # circle
-                cv2.circle(img, (cx, cy), 10, (0, 255, 0), -1)
-                    
+                        # green circle at the top of finger
+                        cv2.circle(
+                            img, 
+                            (x, y),
+                            5, 
+                            (0, 255, 0),
+                            -1,
+                        )
             cv2.imshow("Image", img)
 
             if cv2.waitKey(1) & 0xFF == ord("q"): # adding exit key
