@@ -3,6 +3,9 @@ __pycache__/
 *.pyc
 .DS_Store
 
+# Ignore youtube files
+.youtube/
+
 # Ignore *.egg files
 *.egg
 *.egg-info/
