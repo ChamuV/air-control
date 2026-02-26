@@ -1,7 +1,7 @@
 # src/aircontrol/tracking/hand_tracker.py
 
 import cv2
-import mediapipe
+import mediapipe as mp
 
 
 class HandTracker:
@@ -12,6 +12,7 @@ class HandTracker:
         model_complexity: int = 1,
         min_detection_confidence: float = 0.6,
         min_tracking_confidence: float = 0.6,
+        draw_landmarks: bool = False,
     ):
         self.mp_hands = mp.solutions.hands
         self.mp_draw = mp.solutions.drawing_utils
@@ -23,6 +24,8 @@ class HandTracker:
             min_detection_confidence=min_detection_confidence,
             min_tracking_confidence=min_tracking_confidence,
         )
+
+        self.draw_landmarks = draw_landmarks
 
     def process(self, frame_bgr):
         """
@@ -41,6 +44,13 @@ class HandTracker:
             return hands_out
 
         for i, hand_lms in enumerate(results.multi_hand_landmarks):
+            if self.draw_landmarks:
+                self.mp_draw.draw_landmarks(
+                    frame_bgr,
+                    hand_lms,
+                    self.mp_hands.HAND_CONNECTIONS,
+                )
+
             handed = None
             if results.multi_handedness and i < len(results.multi_handedness):
                 handed = results.multi_handedness[i].classification[0].label  # "Left"/"Right"
@@ -48,16 +58,6 @@ class HandTracker:
             hands_out.append({"landmarks": hand_lms, "handedness": handed})
 
         return hands_out
-
-    def draw(self, frame_bgr, hand_landmarks):
-        """
-        Draw landmarks + connections onto given frame.
-        """
-        self.mp_draw.draw_landmarks(
-            frame_bgr,
-            hand_landmarks,
-            self.mp_hands.HAND_CONNECTIONS,
-        )
 
     def close(self):
         self.hands.close()

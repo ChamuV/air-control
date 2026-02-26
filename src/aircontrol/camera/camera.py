@@ -9,7 +9,7 @@ class Camera:
     Handles frame capture and display.
     """
 
-    def __init__(self, width: int = 640, height: int = 480, cam_index: int = 0):
+    def __init__(self, width: int = 1200, height: int = 920, cam_index: int = 0):
         self.cap = cv2.VideoCapture(cam_index)
 
         if not self.cap.isOpened():
