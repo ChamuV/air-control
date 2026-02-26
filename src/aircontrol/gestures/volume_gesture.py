@@ -1,85 +1,114 @@
 # src/aircontrol/gestures/volume_gesture.py
 
-import math
 import time
+from collections import deque
 from dataclasses import dataclass
-
-from aircontrol.gestures.features import center_of_mass
+from typing import Deque, List, Optional, Tuple
 
 
 @dataclass(frozen=True)
 class VolumeSignal:
-    direction: str  # "up" | "down"
-    steps: int      # how many step units to apply this tick
+    direction: str   # "up" | "down"
+    steps: int
 
 
-class VolumeGesture:
+class VolumeMotionGesture:
     """
-    Horizontal hand = volume mode.
-    Move hand up/down (relative to baseline) = volume up/down.
-    Changes happen at a controlled rate (ticks_per_sec).
+    Horizontal-hand gated volume gesture using velocity + multi-point consensus.
+
+    Horizontal condition: pinky joints (17,18,19,20) have nearly same y (your definition).
+    Motion: track multiple landmarks; compute per-point y-velocity.
+    Consensus: most points move in same direction with enough speed.
+    Tick: emits at most once every tick_dt seconds.
     """
 
-    INDEX_MCP = 5
-    PINKY_MCP = 17
+    PINKY_IDS = (17, 18, 19, 20)
+    TRACK_IDS = (0, 5, 9, 13, 17)
 
     def __init__(
         self,
-        angle_deg_thresh: float = 20.0,   
-        y_deadband: float = 0.03,         
-        ticks_per_sec: float = 8.0,       
-        max_steps_per_tick: int = 3,      
-        gain: float = 60.0,               
+        pinky_y_spread_thresh: float = 0.03,
+        history: int = 6,
+        speed_thresh: float = 0.15,
+        consensus_frac: float = 0.8,
+        tick_dt: float = 0.15,
+        gain: float = 8.0,
+        max_steps_per_tick: int = 3,
     ):
-        self.angle_thresh = math.radians(angle_deg_thresh)
-        self.y_deadband = y_deadband
-        self.tick_dt = 1.0 / ticks_per_sec
-        self.max_steps_per_tick = max_steps_per_tick
-        self.gain = gain
+        self.pinky_y_spread_thresh = float(pinky_y_spread_thresh)
+        self.speed_thresh = float(speed_thresh)
+        self.consensus_frac = float(consensus_frac)
+        self.tick_dt = float(tick_dt)
+        self.gain = float(gain)
+        self.max_steps_per_tick = int(max_steps_per_tick)
 
-        self._baseline_y = None
+        self._hist: Deque[Tuple[float, List[float]]] = deque(maxlen=int(history))
         self._last_tick = 0.0
 
-    def _is_horizontal(self, hand_landmarks) -> bool:
+    def reset(self):
+        self._hist.clear()
+        self._last_tick = 0.0
+
+    def _pinky_horizontal(self, hand_landmarks) -> Tuple[bool, float]:
         lms = hand_landmarks.landmark
-        a = lms[self.INDEX_MCP]
-        b = lms[self.PINKY_MCP]
+        ys = [lms[i].y for i in self.PINKY_IDS]
+        spread = max(ys) - min(ys)
+        return (spread < self.pinky_y_spread_thresh), spread
 
-        dx = b.x - a.x
-        dy = b.y - a.y
-        angle = abs(math.atan2(dy, dx))  # 0 = perfectly horizontal
+    def _tracked_ys(self, hand_landmarks) -> List[float]:
+        lms = hand_landmarks.landmark
+        return [lms[i].y for i in self.TRACK_IDS]
 
-        return angle < self.angle_thresh
-
-    def update(self, hand_landmarks):
-        """
-        Returns:
-          VolumeSignal or None
-        """
+    def update(self, hand_landmarks) -> Tuple[Optional[VolumeSignal], dict]:
         now = time.time()
 
-        if not self._is_horizontal(hand_landmarks):
-            self._baseline_y = None
-            return None
+        horizontal_ok, spread = self._pinky_horizontal(hand_landmarks)
+        debug = {
+            "horizontal_ok": horizontal_ok,
+            "pinky_spread": spread,
+            "v_avg": None,
+            "frac_up": None,
+            "frac_down": None,
+        }
 
-        norm_pt, _ = center_of_mass(hand_landmarks)
-        if self._baseline_y is None:
-            self._baseline_y = norm_pt.y
-            self._last_tick = now
-            return None
+        if not horizontal_ok:
+            self.reset()
+            return None, debug
+
+        ys = self._tracked_ys(hand_landmarks)
+        self._hist.append((now, ys))
+
+        if len(self._hist) < 2:
+            return None, debug
+
+        t0, y0 = self._hist[0]
+        t1, y1 = self._hist[-1]
+        dt = max(1e-3, t1 - t0)
+
+        v = [(y1[i] - y0[i]) / dt for i in range(len(self.TRACK_IDS))]
+        v_avg = sum(v) / len(v)
+
+        up_votes = sum(1 for vi in v if vi < -self.speed_thresh)
+        down_votes = sum(1 for vi in v if vi > self.speed_thresh)
+        frac_up = up_votes / len(v)
+        frac_down = down_votes / len(v)
+
+        debug["v_avg"] = v_avg
+        debug["frac_up"] = frac_up
+        debug["frac_down"] = frac_down
+
+        direction = None
+        if frac_up >= self.consensus_frac:
+            direction = "up"
+        elif frac_down >= self.consensus_frac:
+            direction = "down"
+
+        if direction is None:
+            return None, debug
 
         if now - self._last_tick < self.tick_dt:
-            return None
+            return None, debug
         self._last_tick = now
 
-        dy = self._baseline_y - norm_pt.y  # positive if hand moved UP
-
-        if abs(dy) < self.y_deadband:
-            return None
-
-        steps = int(min(self.max_steps_per_tick, max(1, abs(dy) * self.gain)))
-
-        if dy > 0:
-            return VolumeSignal(direction="up", steps=steps)
-        else:
-            return VolumeSignal(direction="down", steps=steps)
+        steps = int(min(self.max_steps_per_tick, max(1, abs(v_avg) * self.gain)))
+        return VolumeSignal(direction=direction, steps=steps), debug

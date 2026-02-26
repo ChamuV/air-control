@@ -1,55 +1,43 @@
 # src/aircontrol/actions/volume_control.py
 
-import subprocess 
-import pyautogui
+import subprocess
 
-class VolumeController:
+
+class VolumeControllerMacOS:
     """
-    macOS: uses osascript to set/get output volume (0..100).
-    Fallback: sends volumeup/volumedown keys via pyautogui (may depend on OS).
+    Reliable macOS volume control using osascript.
+    Volume is in [0, 100].
     """
 
-    def __init__(self, step: int = 2):
-        self.step = int(step)
+    def __init__(self, delta_per_step: int = 4):
+        self.delta_per_step = int(delta_per_step)
 
-    def _run_osascript(self, script: str) -> str:
-        out = subprocess.check_output(["osascript", "-e", script], text=True).strip()
-        return out
-    
+    def _osascript(self, script: str) -> str:
+        p = subprocess.run(["osascript", "-e", script], text=True, capture_output=True)
+        if p.returncode != 0:
+            raise RuntimeError(p.stderr.strip() or p.stdout.strip())
+        return (p.stdout or "").strip()
+
     def get_volume(self) -> int:
-        try:
-            v = self._run_osascript("output volume of (get volume settings)")
-            return int(v)
-        except Exception:
-            return -1 # if not supported, we can't read volume
-        
-    def set_volume(self, volume_0_100: int):
-        v = max(0, min(100, int(volume_0_100)))
-        try:
-            self._run_osascript(f"set volume output volume {v}")
-        except Exception:
-            # fallback: approximate using key presses
-            # NOTE: can't set absolute volume with this fallback
-            pass
+        return int(self._osascript("output volume of (get volume settings)"))
 
-    def volume_up(self, steps: int = 1):
+    def set_volume(self, v: int) -> None:
+        v = max(0, min(100, int(v)))
+        self._osascript(f"set volume output volume {v}")
+
+    def change(self, direction: str, steps: int) -> int:
+        """
+        direction: "up" or "down"
+        steps: positive integer
+        Returns the new volume.
+        """
         steps = max(1, int(steps))
-        v = self.get_volume()
-        if v >= 0:
-            self.set_volume(v + self.step * steps)
-            return
+        current = self.get_volume()
 
-        # fallback
-        for _ in range(steps):
-            pyautogui.press("volumeup")
+        delta = self.delta_per_step * steps
+        if direction == "down":
+            delta = -delta
 
-    def volume_down(self, steps: int = 1):
-        steps = max(1, int(steps))
-        v = self.get_volume()
-        if v >= 0:
-            self.set_volume(v - self.step * steps)
-            return
-
-        # fallback
-        for _ in range(steps):
-            pyautogui.press("volumedown")
+        new_v = max(0, min(100, current + delta))
+        self.set_volume(new_v)
+        return new_v
