@@ -36,9 +36,10 @@ def main():
 
     # -------- Window Gesture --------
     window_gesture = WindowMotionGesture(
-        pinky_x_spread_thresh=0.05,  # slightly relaxed for stability
-        x_deadband=0.05,
-        tick_dt=0.4,
+        tip_x_spread_thresh=0.05,
+        min_extension_x=0.03,
+        swipe_dist_thresh=0.10,
+        tick_dt=0.40,
     )
     window = WindowControllerMacOS()
 
@@ -50,9 +51,7 @@ def main():
             if hands:
                 hand_lms = hands[0]["landmarks"]
 
-                # =============================
-                # 1️⃣ Volume Gesture Check
-                # =============================
+                # Volume Gesture Check
                 vol_signal, vol_dbg = vol_gesture.update(hand_lms)
 
                 if vol_dbg["horizontal_ok"]:
@@ -64,15 +63,16 @@ def main():
                             print("[VOL ERROR]", e)
 
                 else:
-                    # =============================
-                    # 2️⃣ Window Gesture Check
-                    # =============================
-                    window_signal = window_gesture.update(hand_lms)
+                    # Window Gesture Check
+                    win_signal, win_dbg = window_gesture.update(hand_lms)
 
-                    if window_signal:
-                        print(f"[WINDOW] {window_signal.direction}")
+                    if win_signal:
+                        print(
+                            f"[WINDOW] {win_signal.direction} "
+                            f"dx={win_dbg['dx']:.3f} spread={win_dbg['tips_spread']:.3f}"
+                        )
                         try:
-                            if window_signal.direction == "right":
+                            if win_signal.direction == "right":
                                 window.switch_right()
                             else:
                                 window.switch_left()
@@ -80,9 +80,7 @@ def main():
                             print("[WINDOW ERROR]", e)
 
                     else:
-                        # =============================
-                        # 3️⃣ Default: Mouse + Pinch
-                        # =============================
+                        # Mouse + Pinch
                         norm_pt, _ = center_of_mass(hand_lms)
                         mouse.move_to_norm(norm_pt.x, norm_pt.y)
 
