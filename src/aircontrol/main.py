@@ -49,7 +49,7 @@ def main():
             events = engine.update(hand_lms)
             for event in events:
                 dispatcher.dispatch(event)
-                print(event.name)
+                # print(event.name)
 
             cam.show(frame)
 

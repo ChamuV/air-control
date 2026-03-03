@@ -23,7 +23,7 @@ class HoldOpenPalmDetector:
     def __init__(
         self,
         hold_frames: int = 3,
-        cooldown_frames: int = 5,
+        cooldown_frames: int = 4,
         move_tol: float = 0.10,
         min_open_frames: int = 2,
     ):
@@ -35,9 +35,7 @@ class HoldOpenPalmDetector:
         self._hold_counter = 0
         self._cooldown = 0
         self._last_ref: Optional[Tuple[float, float]] = None
-        self._open_streak = 0  # debounce counter
-
-        # NEW: release-to-rearm
+        self._open_streak = 0
         self._armed = True
 
     def _is_extended(self, lms, tip: int, pip: int) -> bool:
@@ -56,7 +54,6 @@ class HoldOpenPalmDetector:
             self._hold_counter = 0
             self._open_streak = 0
             self._last_ref = None
-            # if tracking drops, treat as a "release"
             self._armed = True
             return []
 
@@ -74,38 +71,33 @@ class HoldOpenPalmDetector:
 
         open_palm = index_ext and middle_ext and ring_ext and pinky_ext and thumb_ext
 
-        # ---------------- DEBUG ----------------
-        print(
-            f"[PALM DEBUG] "
-            f"I:{index_ext} "
-            f"M:{middle_ext} "
-            f"R:{ring_ext} "
-            f"P:{pinky_ext} "
-            f"T:{thumb_ext} "
-            f"OPEN:{open_palm} "
-            f"ARMED:{self._armed}"
-        )
-        # ---------------------------------------
+        # print(
+        #     f"[PALM DEBUG] "
+        #     f"I:{index_ext} "
+        #     f"M:{middle_ext} "
+        #     f"R:{ring_ext} "
+        #     f"P:{pinky_ext} "
+        #     f"T:{thumb_ext} "
+        #     f"OPEN:{open_palm} "
+        #     f"ARMED:{self._armed}"
+        # )
 
         if not open_palm:
-            # release -> rearm
-            if self._armed is False:
-                print("[PALM] released -> re-armed")
-            self._armed = True
+            # if self._armed is False:
+            #     print("[PALM] released -> re-armed")
 
+            self._armed = True
             self._hold_counter = 0
             self._open_streak = 0
             self._last_ref = None
             return []
 
-        # if we're not armed, ignore until release happens
         if not self._armed:
-            print("[PALM] open but NOT armed (waiting for release)")
+            # print("[PALM] open but NOT armed (waiting for release)")
             return []
 
-        # debounce: require open palm for a few frames first
         self._open_streak += 1
-        print(f"[PALM] open_streak={self._open_streak}/{self.min_open_frames}")
+        # print(f"[PALM] open_streak={self._open_streak}/{self.min_open_frames}")
 
         if self._open_streak < self.min_open_frames:
             return []
@@ -118,7 +110,7 @@ class HoldOpenPalmDetector:
             movement = math.hypot(dx, dy)
 
             if movement > self.move_tol:
-                print(f"[PALM] movement reset: {movement:.4f} > {self.move_tol}")
+                # print(f"[PALM] movement reset: {movement:.4f} > {self.move_tol}")
                 self._hold_counter = 0
                 self._last_ref = ref
                 return []
@@ -126,15 +118,13 @@ class HoldOpenPalmDetector:
         self._last_ref = ref
         self._hold_counter += 1
 
-        print(f"[PALM] holding... {self._hold_counter}/{self.hold_frames}")
+        # print(f"[PALM] holding... {self._hold_counter}/{self.hold_frames}")
 
         if self._hold_counter >= self.hold_frames:
-            print("[PALM] FIRING media.play_pause")
+            # print("[PALM] FIRING media.play_pause")
+
             self._cooldown = self.cooldown_frames
-
-            # IMPORTANT: disarm until release
             self._armed = False
-
             self._hold_counter = 0
             self._open_streak = 0
             return [GestureEvent("media.play_pause", {})]
