@@ -1,0 +1,59 @@
+# src/aircontrol/cursor/controller.py
+
+
+from .index_mode import IndexCursorMode
+from .palm_mode import PalmCursorMode
+
+from .mapping import map_norm_to_screen
+from .smoothing import EMAFilter2D
+
+class CursorController:
+    def __init__(self, screen_w: int, screen_h: int, mode_name: str = "palm", enabled: bool = True, smoother = None):
+        if mode_name not in {"palm", "index"}:
+            raise ValueError("mode_name must be 'palm' or 'index'")
+        
+        self.screen_w = screen_w
+        self.screen_h = screen_h
+        
+        self.mode_name = mode_name
+        self.enabled = enabled
+
+        self.index_mode = IndexCursorMode()
+        self.palm_mode = PalmCursorMode()
+
+        self.smoother = smoother or EMAFilter2D(alpha=0.2)
+
+    def toggle_mode(self) -> None:
+        self.mode_name = "index" if self.mode_name == "palm" else "palm"
+        self.smoother.reset()
+
+    def toggle_enabled(self) -> None:
+        self.enabled = not self.enabled
+        if self.enabled:
+            self.smoother.reset()
+
+    def get_active_mode(self):
+        return self.palm_mode if self.mode_name == "palm" else self.index_mode
+
+    def update_xy(self, hand_landmarks):
+        """
+        Return (x_norm, y_norm) or None.
+        """
+        if hand_landmarks is None:
+            return None
+        
+        if not self.enabled:
+            return None
+        
+        mode = self.get_active_mode() 
+        point = mode.get_point(hand_landmarks)
+        if point is None:
+            self.smoother.reset()
+            return None
+        
+        x_norm, y_norm = point
+        
+        px, py = map_norm_to_screen(x_norm, y_norm, self.screen_w, self.screen_h)
+        px, py = self.smoother.update(px, py)
+
+        return int(px), int(py)

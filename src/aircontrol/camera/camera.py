@@ -9,7 +9,7 @@ class Camera:
     Handles frame capture and display.
     """
 
-    def __init__(self, width: int = 1200, height: int = 920, cam_index: int = 0):
+    def __init__(self, width: int = 640, height: int = 480, cam_index: int = 0):
         self.cap = cv2.VideoCapture(cam_index)
 
         if not self.cap.isOpened():
@@ -18,15 +18,17 @@ class Camera:
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
 
-    def get_frame(self):
+    def get_frame(self, flip: bool = True):
         success, frame = self.cap.read()
         if not success:
             raise RuntimeError("Failed to read frame from camera.")
+
+        if flip:
+            frame = cv2.flip(frame, 1)  # ← flip here
+
         return frame
 
-    def show(self, frame, window_name: str = "AirControl", flip: bool = True):
-        if flip:
-            frame = cv2.flip(frame, 1)
+    def show(self, frame, window_name: str = "AirControl"):
         cv2.imshow(window_name, frame)
 
     def release(self):
