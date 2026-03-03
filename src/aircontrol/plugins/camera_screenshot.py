@@ -43,8 +43,8 @@ class CameraScreenshotDetector:
 
     def __init__(
         self,
-        hold_frames: int = 5,
-        cooldown_frames: int = 20,
+        hold_frames: int = 4,
+        cooldown_frames: int = 5,
         sideways_y_tol: float = 0.02,
     ):
         self.hold_frames = int(hold_frames)
@@ -103,10 +103,9 @@ class CameraScreenshotPlugin:
         shooter = CameraScreenshotController(out_dir="captures")
 
         def take_screenshot(event: GestureEvent) -> None:
-            # We expect ctx to expose the latest camera frame (BGR).
-            # Pick whichever your ctx uses; this tries a few common names.
-            frame = getattr(ctx, "frame", None) or getattr(ctx, "latest_frame", None) or getattr(ctx, "camera_frame", None)
-            shooter.save_frame(frame)
+            frame = ctx.latest_frame
+            if frame is not None:
+                ctx.camera_screenshot.save_frame(frame)
 
         return PluginRegistration(
             detectors=[detector],

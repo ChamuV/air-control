@@ -10,6 +10,8 @@ from aircontrol.cursor.controller import CursorController
 
 from aircontrol.actions.mouse_control import MouseController
 from aircontrol.actions.media_control import MediaControllerMacOS
+from aircontrol.actions.facetime_control import FaceTimeControllerMacOS  
+from aircontrol.actions.camera_screenshot_control import CameraScreenshotController 
 
 from aircontrol.app_context import AppContext
 
@@ -26,6 +28,9 @@ def main():
     mouse = MouseController()
     media = MediaControllerMacOS()
 
+    facetime = FaceTimeControllerMacOS("+919845103831")
+    camera_screenshot = CameraScreenshotController(out_dir="captures")
+
     cursor = CursorController(
         screen_w=screen_w,
         screen_h=screen_h,
@@ -33,7 +38,13 @@ def main():
         enabled=True,
     )
 
-    ctx = AppContext(mouse=mouse, cursor=cursor, media=media)
+    ctx = AppContext(
+        mouse=mouse,
+        cursor=cursor,
+        media=media,
+        facetime=facetime,                 
+        camera_screenshot=camera_screenshot,  
+    )
 
     plugins = default_plugins()
     engine, dispatcher = build_gesture_system(ctx, plugins)
@@ -41,6 +52,9 @@ def main():
     try:
         while True:
             frame = cam.get_frame()
+
+            ctx.latest_frame = frame 
+
             hands = tracker.process(frame)
 
             hand_lms = hands[0]["landmarks"] if hands else None
