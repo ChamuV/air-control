@@ -7,15 +7,24 @@ from aircontrol.camera import Camera
 from aircontrol.tracking import HandTracker
 
 from aircontrol.cursor.controller import CursorController
+
 from aircontrol.actions.mouse_control import MouseController
+from aircontrol.actions.media_control import MediaControllerMacOS
+
+from aircontrol.app_context import AppContext
+
+from aircontrol.gestures.loader import build_gesture_system
+
+from aircontrol.plugins import default_plugins
 
 
 def main():
     screen_w, screen_h = pyautogui.size()
 
     cam = Camera()
-    tracker = HandTracker()
+    tracker = HandTracker(max_num_hands=1)
     mouse = MouseController()
+    media = MediaControllerMacOS()
 
     cursor = CursorController(
         screen_w=screen_w,
@@ -24,33 +33,34 @@ def main():
         enabled=True,
     )
 
+    ctx = AppContext(mouse=mouse, cursor=cursor, media=media)
+
+    plugins = default_plugins()
+    engine, dispatcher = build_gesture_system(ctx, plugins)
+
     try:
         while True:
             frame = cam.get_frame()
             hands = tracker.process(frame)
 
-            # --- cursor move ---
-            if hands:
-                hand_lms = hands[0]["landmarks"]
-                pos_xy = cursor.update_xy(hand_lms) 
+            hand_lms = hands[0]["landmarks"] if hands else None
 
-                if pos_xy is not None:
-                    px, py = pos_xy
-                    mouse.move_to(px, py)
-            else:
-                # no hand detected → reset smoothing to avoid jump 
-                cursor.smoother.reset()
+            # --- run gesture system ---
+            events = engine.update(hand_lms)
+            for event in events:
+                dispatcher.dispatch(event)
+                print(event.name)
 
             cam.show(frame)
 
             # --- Quit / Toggle options ---
             key = cv2.waitKey(1) & 0xFF
-            if key == ord("q"): # quit program
+            if key == ord("q"):  # quit program
                 break
-            elif key == ord("t"): # turn of cursor movement
+            elif key == ord("t"):  # toggle cursor movement
                 cursor.toggle_enabled()
                 print(f"[CURSOR] enabled={cursor.enabled}")
-            elif key == ord("m"): # change cursor mode
+            elif key == ord("m"):  # change cursor mode
                 cursor.toggle_mode()
                 print(f"[CURSOR] mode={cursor.mode_name}")
 
