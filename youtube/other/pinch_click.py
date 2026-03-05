@@ -38,7 +38,7 @@ class PinchClickDetector:
 
         if dist < self.threshold:
             self._cooldown = self.cooldown_frames
-            return [GestureEvent("mouse.click", {})]
+            return [GestureEvent("gesture.pinch", {"dist": dist})]
 
         return []
 
@@ -46,13 +46,9 @@ class PinchClickDetector:
 class PinchClickPlugin:
     def register(self, ctx: AppContext) -> PluginRegistration:
         detector = PinchClickDetector()
-
-        def click_action(event: GestureEvent) -> None:
-            ctx.mouse.click()
-        
         return PluginRegistration(
                 detectors=[detector],
-                actions={"mouse.click": click_action}
+                actions={}
         )
     
 def plugin():

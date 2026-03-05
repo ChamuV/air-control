@@ -1,0 +1,40 @@
+# src/aircontrol/config/gesture_map.yaml
+
+profile: default
+
+bindings:
+
+  - gesture: gesture.pinch
+    state: any
+    action: mouse.click
+
+  - gesture: gesture.thumbs_down
+    state: any
+    action: app.quit
+
+  - gesture: gesture.index_middle_pinch
+    state: any
+    action: cursor.toggle_mode
+
+  - gesture: gesture.fist
+    state: any
+    action: media.mute_toggle
+
+  - gesture: gesture.open_palm_hold
+    state: any
+    action: media.play_pause
+
+  - gesture: gesture.horizontal_yo
+    state: any
+    action: camera.screenshot
+
+  - gesture: gesture.call_sign
+    state: any
+    action: call.start
+    params:
+      number: "+919845103831"
+      sim: secondary
+
+  - gesture: gesture.two_finger_hold
+    state: any
+    action: scroll.continuous

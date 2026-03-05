@@ -19,7 +19,6 @@ class AppContext:
     cursor: CursorController
     media: MediaControllerMacOS
 
-    facetime: FaceTimeControllerMacOS
-    camera_screenshot: CameraScreenshotController
-
+    facetime: Optional[FaceTimeControllerMacOS] = None
+    camera_screenshot: Optional[CameraScreenshotController] = None
     latest_frame: Optional[Any] = None

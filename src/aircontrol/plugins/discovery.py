@@ -6,24 +6,16 @@ import importlib
 import pkgutil
 from typing import List
 
-import aircontrol.plugins  # important: gives us __path__
+import aircontrol.plugins
+import aircontrol.plugins.detectors
+import aircontrol.plugins.commands
 
 
-def discover_plugins() -> List[object]:
-    """
-    Auto-discover plugins inside aircontrol.plugins package.
+def _discover_from_package(pkg) -> List[object]:
+    discovered: List[object] = []
 
-    A plugin module must expose:
-
-        def plugin() -> GesturePlugin
-
-    Returns:
-        List of instantiated plugin objects.
-    """
-    discovered = []
-
-    package_path = aircontrol.plugins.__path__
-    package_name = aircontrol.plugins.__name__
+    package_path = pkg.__path__
+    package_name = pkg.__name__
 
     for module_info in pkgutil.iter_modules(package_path):
         module_name = module_info.name
@@ -42,15 +34,32 @@ def discover_plugins() -> List[object]:
             print(f"[PLUGIN LOAD ERROR] {full_module_name}: {e}")
             continue
 
-        # Look for factory function
         plugin_factory = getattr(module, "plugin", None)
+        if not callable(plugin_factory):
+            continue
 
-        if callable(plugin_factory):
-            try:
-                plugin_instance = plugin_factory()
-                discovered.append(plugin_instance)
-                print(f"[PLUGIN LOADED] {module_name}")
-            except Exception as e:
-                print(f"[PLUGIN INIT ERROR] {module_name}: {e}")
+        try:
+            plugin_instance = plugin_factory()
+            discovered.append(plugin_instance)
+            print(f"[PLUGIN LOADED] {full_module_name}")
+        except Exception as e:
+            print(f"[PLUGIN INIT ERROR] {full_module_name}: {e}")
+
+    return discovered
+
+
+def discover_plugins() -> List[object]:
+    """
+    Auto-discover plugins inside:
+      - aircontrol.plugins.detectors
+      - aircontrol.plugins.commands
+
+    A plugin module must expose:
+        def plugin() -> object
+    """
+    discovered: List[object] = []
+
+    discovered.extend(_discover_from_package(aircontrol.plugins.detectors))
+    discovered.extend(_discover_from_package(aircontrol.plugins.commands))
 
     return discovered
