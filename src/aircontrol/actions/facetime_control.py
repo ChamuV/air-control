@@ -20,8 +20,9 @@ class FaceTimeControllerMacOS:
           System Settings -> Privacy & Security -> Accessibility
     """
 
-    def __init__(self, phone_number_str: str = "+919845103831"):
+    def __init__(self, phone_number_str: str = "+919845103831", sim: str = "secondary"):
         self.phone_number = str(phone_number_str)
+        self.sim = sim
 
     def call(self) -> None:
         script = f'''

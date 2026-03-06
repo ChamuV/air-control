@@ -68,7 +68,9 @@ class GestureDispatcher:
         if action is None:
             return False
 
+        # print("[IN]", event.name)
         action(mapped)
+        # print("[MAP]", event.name, "->", mapped.name)
         return True
 
     def has_action(self, action_name: str) -> bool:

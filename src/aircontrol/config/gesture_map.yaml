@@ -8,6 +8,19 @@ bindings:
     state: any
     action: mouse.click
 
+  - gesture: gesture.middle_pinch
+    state: any
+    action: mouse.right_click
+
+  - gesture: gesture.ring_pinch.start
+    action: drag.start
+
+  - gesture: gesture.ring_pinch.move
+    action: drag.move
+
+  - gesture: gesture.ring_pinch.end
+    action: drag.end
+
   - gesture: gesture.thumbs_down
     state: any
     action: app.quit

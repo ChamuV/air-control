@@ -1,3 +1,5 @@
+# src/aircontrol/main.py
+
 from __future__ import annotations
 
 import cv2
@@ -30,7 +32,7 @@ def main() -> None:
     cursor = CursorController(
         screen_w=screen_w,
         screen_h=screen_h,
-        mode_name="palm",
+        mode_name="index",  
         enabled=True,
     )
 
@@ -55,7 +57,7 @@ def main() -> None:
             # run gesture detectors
             events = engine.update(hand_lms)
 
-            if hand_lms is not None and cursor.enabled and cursor.mode_name == "palm":
+            if hand_lms is not None and cursor.enabled:
                 pos = cursor.update_xy(hand_lms)
                 if pos is not None:
                     px, py = pos
