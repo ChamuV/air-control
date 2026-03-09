@@ -10,45 +10,88 @@ from aircontrol.tracking.hand_landmarks import (
     THUMB_TIP,
     THUMB_IP,
     INDEX_MCP,
-    INDEX_TIP,
     INDEX_PIP,
-    MIDDLE_TIP,
+    INDEX_TIP,
+    MIDDLE_MCP,
     MIDDLE_PIP,
-    RING_TIP,
+    MIDDLE_TIP,
+    RING_MCP,
     RING_PIP,
-    PINKY_TIP,
+    RING_TIP,
     PINKY_MCP,
+    PINKY_PIP,
+    PINKY_DIP,
+    PINKY_TIP,
 )
 
 
 class CallSignDetector:
     """
-    "Call me" gesture:
-
-      - Thumb up + sideways
-      - Pinky sideways
-      - Index/Middle/Ring folded
-
-    Emits: gesture.call_sign
+    Call sign:
+        thumb up
+        pinky sideways
+        other fingers folded
     """
 
     def __init__(
         self,
-        hold_frames: int = 8,
-        cooldown_frames: int = 30,
-        pinky_side_x_thresh: float = 0.055,
-        thumb_side_x_thresh: float = 0.040,
+        hold_frames: int = 6,
+        cooldown_frames: int = 10,
+        thumb_x_tol: float = 0.035,
+        thumb_y_span: float = 0.10,
+        pinky_y_tol: float = 0.035,
+        pinky_x_span: float = 0.08,
+        folded_margin: float = 0.015,
     ):
-        self.hold_frames = int(hold_frames)
-        self.cooldown_frames = int(cooldown_frames)
+        self.hold_frames = hold_frames
+        self.cooldown_frames = cooldown_frames
+
+        self.thumb_x_tol = thumb_x_tol
+        self.thumb_y_span = thumb_y_span
+        self.pinky_y_tol = pinky_y_tol
+        self.pinky_x_span = pinky_x_span
+        self.folded_margin = folded_margin
 
         self._hold_counter = 0
         self._cooldown = 0
 
-        self.pinky_side_x_thresh = float(pinky_side_x_thresh)
-        self.thumb_side_x_thresh = float(thumb_side_x_thresh)
+    def _thumb_up(self, lms):
+        ids = [1, 2, THUMB_IP, THUMB_TIP]
+
+        xs = [lms[i].x for i in ids]
+        ys = [lms[i].y for i in ids]
+
+        vertical = (max(xs) - min(xs)) < self.thumb_x_tol
+        monotone = all(ys[i + 1] < ys[i] for i in range(len(ys) - 1))
+        span = (ys[0] - ys[-1]) > self.thumb_y_span
+
+        return vertical and monotone and span
+
+    def _pinky_side(self, lms):
+        ids = [PINKY_MCP, PINKY_PIP, PINKY_DIP, PINKY_TIP]
+
+        xs = [lms[i].x for i in ids]
+        ys = [lms[i].y for i in ids]
+
+        horizontal = (max(ys) - min(ys)) < self.pinky_y_tol
+        span = (max(xs) - min(xs)) > self.pinky_x_span
+
+        mono = (
+            all(xs[i + 1] > xs[i] for i in range(len(xs) - 1))
+            or all(xs[i + 1] < xs[i] for i in range(len(xs) - 1))
+        )
+
+        return horizontal and span and mono
+
+    def _folded(self, lms, mcp, pip, tip):
+        tip_below = lms[tip].y > lms[pip].y + self.folded_margin
+        pip_low = lms[pip].y >= lms[mcp].y - self.folded_margin
+        tip_near = abs(lms[tip].x - lms[mcp].x) < 0.06
+
+        return tip_below and pip_low and tip_near
 
     def update(self, hand_landmarks) -> list[GestureEvent]:
+
         if hand_landmarks is None:
             self._hold_counter = 0
             self._cooldown = 0
@@ -60,23 +103,14 @@ class CallSignDetector:
 
         lms = hand_landmarks.landmark
 
-        thumb_up = lms[THUMB_TIP].y < lms[THUMB_IP].y
-        thumb_side = abs(lms[THUMB_TIP].x - lms[INDEX_MCP].x) > self.thumb_side_x_thresh
+        thumb_ok = self._thumb_up(lms)
+        pinky_ok = self._pinky_side(lms)
 
-        pinky_side = abs(lms[PINKY_TIP].x - lms[PINKY_MCP].x) > self.pinky_side_x_thresh
+        index_ok = self._folded(lms, INDEX_MCP, INDEX_PIP, INDEX_TIP)
+        middle_ok = self._folded(lms, MIDDLE_MCP, MIDDLE_PIP, MIDDLE_TIP)
+        ring_ok = self._folded(lms, RING_MCP, RING_PIP, RING_TIP)
 
-        index_folded = lms[INDEX_TIP].y > lms[INDEX_PIP].y
-        middle_folded = lms[MIDDLE_TIP].y > lms[MIDDLE_PIP].y
-        ring_folded = lms[RING_TIP].y > lms[RING_PIP].y
-
-        gesture = (
-            thumb_up
-            and thumb_side
-            and pinky_side
-            and index_folded
-            and middle_folded
-            and ring_folded
-        )
+        gesture = thumb_ok and pinky_ok and index_ok and middle_ok and ring_ok
 
         if gesture:
             self._hold_counter += 1
@@ -84,7 +118,16 @@ class CallSignDetector:
             if self._hold_counter >= self.hold_frames:
                 self._hold_counter = 0
                 self._cooldown = self.cooldown_frames
-                return [GestureEvent("gesture.call_sign", {})]
+
+                return [
+                    GestureEvent(
+                        "gesture.call_sign",
+                        {
+                            "number": "+919845103831",
+                            "mode": "video",
+                        },
+                    )
+                ]
 
         else:
             self._hold_counter = 0

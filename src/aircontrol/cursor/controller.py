@@ -1,29 +1,30 @@
 # src/aircontrol/cursor/controller.py
 
-
 from .index_mode import IndexCursorMode
 from .palm_mode import PalmCursorMode
 
 from .mapping import map_norm_to_screen
 from .smoothing import EMAFilter2D
 
+
 class CursorController:
     def __init__(
-            self, 
-            screen_w: int, 
-            screen_h: int, 
-            mode_name: str = "index", 
-            enabled: bool = True, 
-            smoother = None, 
-            deadzone_px: float = 3.0, 
-            edge_padding_px: int = 1,
-   ):
+        self,
+        screen_w: int,
+        screen_h: int,
+        mode_name: str = "index",
+        enabled: bool = True,
+        smoother=None,
+        deadzone_px: float = 5.0,
+        edge_padding_px: int = 1,
+        gain: float = 0.65,
+    ):
         if mode_name not in {"palm", "index"}:
             raise ValueError("mode_name must be 'palm' or 'index'")
-        
+
         self.screen_w = screen_w
         self.screen_h = screen_h
-        
+
         self.mode_name = mode_name
         self.enabled = enabled
 
@@ -32,8 +33,9 @@ class CursorController:
 
         self.smoother = smoother or EMAFilter2D(alpha=0.18)
 
-        self.deadzone_px = deadzone_px
-        self.edge_padding_px = edge_padding_px
+        self.deadzone_px = float(deadzone_px)
+        self.edge_padding_px = int(edge_padding_px)
+        self.gain = float(gain)
 
         self._last_output = None
 
@@ -44,45 +46,52 @@ class CursorController:
 
     def toggle_enabled(self) -> None:
         self.enabled = not self.enabled
-        if self.enabled:
-            self.smoother.reset()
+        self.smoother.reset()
+        self._last_output = None
 
     def get_active_mode(self):
         return self.palm_mode if self.mode_name == "palm" else self.index_mode
-    
+
     def _clamp_to_screen(self, px: float, py: float) -> tuple[float, float]:
         m = self.edge_padding_px
-        px = max(m, min(self.screen_w - m, px))
-        py = max(m, min(self.screen_h - m, py))
+        px = max(m, min(self.screen_w - 1 - m, px))
+        py = max(m, min(self.screen_h - 1 - m, py))
         return px, py
 
     def update_xy(self, hand_landmarks):
-        """
-        Return (x_norm, y_norm) or None.
-        """
         if hand_landmarks is None:
+            self.smoother.reset()
+            self._last_output = None
             return None
-        
+
         if not self.enabled:
             return None
-        
-        mode = self.get_active_mode() 
+
+        mode = self.get_active_mode()
         point = mode.get_point(hand_landmarks)
         if point is None:
             self.smoother.reset()
+            self._last_output = None
             return None
-        
+
         x_norm, y_norm = point
-        
+
         px, py = map_norm_to_screen(x_norm, y_norm, self.screen_w, self.screen_h)
         px, py = self.smoother.update(px, py)
+
+        # Reduce sensitivity by compressing movement around previous output
+        if self._last_output is not None:
+            last_x, last_y = self._last_output
+            px = last_x + self.gain * (px - last_x)
+            py = last_y + self.gain * (py - last_y)
+
         px, py = self._clamp_to_screen(px, py)
 
-        # deadzone check
+        # Deadzone / stick zone: keep cursor still when hovering near a point
         if self._last_output is not None:
             last_x, last_y = self._last_output
             if abs(px - last_x) < self.deadzone_px and abs(py - last_y) < self.deadzone_px:
-                return int(last_x), int(last_y)  # within deadzone, ignore movement
+                return int(last_x), int(last_y)
 
         self._last_output = (px, py)
         return int(px), int(py)

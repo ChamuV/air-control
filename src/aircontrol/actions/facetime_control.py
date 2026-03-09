@@ -7,30 +7,43 @@ import subprocess
 
 class FaceTimeControllerMacOS:
     """
-    Initiates a FaceTime call using a phone number.
+    Start a FaceTime call.
 
-    Best practice: use E.164 format with country code, e.g. "+919845103831".
+    Modes:
+        video -> facetime://
+        audio -> facetime-audio://
 
-    Uses:
-        open location "tel:+919845103831"
+    Example number format:
+        "+919845103831"
 
     Requires:
-        - FaceTime installed
-        - Accessibility permission for the app running Python (Terminal/VSCode/etc)
-          System Settings -> Privacy & Security -> Accessibility
+        FaceTime installed
+        Accessibility permission for Python host
     """
 
-    def __init__(self, phone_number_str: str = "+919845103831", sim: str = "secondary"):
+    def __init__(self, phone_number_str: str = "+919845103831", mode: str = "video"):
         self.phone_number = str(phone_number_str)
-        self.sim = sim
+        self.mode = mode
+
+    def _call_url(self) -> str:
+        if self.mode == "video":
+            return f"facetime://{self.phone_number}"
+        return f"facetime-audio://{self.phone_number}"
 
     def call(self) -> None:
+        url = self._call_url()
+
         script = f'''
         tell application "FaceTime"
             activate
-            open location "tel:{self.phone_number}"
-            delay 1.5
-            tell application "System Events" to key code 36
+            open location "{url}"
+        end tell
+
+        delay 1.2
+
+        tell application "System Events"
+            key code 36
         end tell
         '''
+
         subprocess.run(["osascript", "-e", script], check=False)
