@@ -32,7 +32,7 @@ def main() -> None:
     cursor = CursorController(
         screen_w=screen_w,
         screen_h=screen_h,
-        mode_name="index",  
+        mode_name="index",
         enabled=True,
     )
 
@@ -54,31 +54,26 @@ def main() -> None:
             hands = tracker.process(frame)
             hand_lms = hands[0]["landmarks"] if hands else None
 
-            # run gesture detectors
             events = engine.update(hand_lms)
 
+            # continuous cursor motion
             if hand_lms is not None and cursor.enabled:
                 pos = cursor.update_xy(hand_lms)
                 if pos is not None:
                     px, py = pos
                     events.append(GestureEvent("cursor.move", {"x": px, "y": py}))
 
-            # dispatch (mapper + commands)
             for event in events:
                 dispatcher.dispatch(event)
 
             cam.show(frame)
 
-            # --- keyboard controls ---
             key = cv2.waitKey(1) & 0xFF
             if key == ord("q"):
                 break
             elif key == ord("t"):
                 cursor.toggle_enabled()
                 print(f"[CURSOR] enabled={cursor.enabled}")
-            elif key == ord("m"):
-                cursor.toggle_mode()
-                print(f"[CURSOR] mode={cursor.mode_name}")
 
     finally:
         tracker.close()
