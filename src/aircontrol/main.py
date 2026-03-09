@@ -18,6 +18,8 @@ from aircontrol.gestures.events import GestureEvent
 from aircontrol.gestures.loader import build_gesture_system
 from aircontrol.plugins import default_plugins
 
+from aircontrol.ui.gesture_hud import draw_gesture_hud
+
 
 def main() -> None:
     screen_w, screen_h = pyautogui.size()
@@ -65,6 +67,9 @@ def main() -> None:
 
             for event in events:
                 dispatcher.dispatch(event)
+
+            # test HUD
+            draw_gesture_hud(frame, label="Call Sign", progress=0.5)
 
             cam.show(frame)
 
