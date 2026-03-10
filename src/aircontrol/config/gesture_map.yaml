@@ -46,7 +46,7 @@ bindings:
     action: call.start
     params:
       number: "+919845103831"
-      sim: secondary
+      mode: audio
 
   - gesture: gesture.two_finger_hold
     state: any

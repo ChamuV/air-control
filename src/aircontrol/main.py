@@ -18,8 +18,6 @@ from aircontrol.gestures.events import GestureEvent
 from aircontrol.gestures.loader import build_gesture_system
 from aircontrol.plugins import default_plugins
 
-from aircontrol.ui.gesture_hud import draw_gesture_hud
-
 
 def main() -> None:
     screen_w, screen_h = pyautogui.size()
@@ -58,7 +56,6 @@ def main() -> None:
 
             events = engine.update(hand_lms)
 
-            # continuous cursor motion
             if hand_lms is not None and cursor.enabled:
                 pos = cursor.update_xy(hand_lms)
                 if pos is not None:
@@ -67,9 +64,7 @@ def main() -> None:
 
             for event in events:
                 dispatcher.dispatch(event)
-
-            # test HUD
-            draw_gesture_hud(frame, label="Call Sign", progress=0.5)
+                print(f"[EVENT] {event.name}")
 
             cam.show(frame)
 

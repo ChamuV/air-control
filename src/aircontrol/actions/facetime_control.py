@@ -39,7 +39,7 @@ class FaceTimeControllerMacOS:
             open location "{url}"
         end tell
 
-        delay 1.2
+        delay 0.4
 
         tell application "System Events"
             key code 36

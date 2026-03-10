@@ -18,12 +18,11 @@ class CallStartCommandPlugin:
 
         def call_action(event: GestureEvent) -> None:
             number = event.payload.get("number", "+919845103831")
-            mode = event.payload.get("mode", "video")   # "video" or "audio"
+            mode = event.payload.get("mode", "video")
 
             facetime = FaceTimeControllerMacOS(
                 phone_number_str=number,
                 mode=mode,
-                auto_confirm=True,
             )
             facetime.call()
 
