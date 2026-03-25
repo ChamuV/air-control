@@ -10,7 +10,7 @@ class MediaVolumeDownCommandPlugin:
     def register(self, ctx: AppContext) -> PluginRegistration:
 
         def volume_down_action(event: GestureEvent) -> None:
-            ctx.volume.change("down", 1)
+            ctx.media.volume_down(1)
 
         return PluginRegistration(
             detectors=[],

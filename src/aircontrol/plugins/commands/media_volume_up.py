@@ -9,14 +9,14 @@ class MediaVolumeUpCommandPlugin:
     """Command-only plugin: media.volume_up"""
     def register(self, ctx: AppContext) -> PluginRegistration:
 
-        def volume_up_action(event: GestureEvent) -> PluginRegistration:
-            ctx.volume.change("up", 1)
+        def volume_up_action(event: GestureEvent) -> None:
+            ctx.media.volume_up(1)
 
         return PluginRegistration(
             detectors=[],
             actions={"media.volume_up": volume_up_action},
-        )   
-    
+        )
+
 
 def plugin():
     return MediaVolumeUpCommandPlugin()
