@@ -21,10 +21,6 @@ bindings:
   - gesture: gesture.ring_pinch.end
     action: drag.end
 
-  - gesture: gesture.thumbs_down
-    state: any
-    action: app.quit
-
   - gesture: gesture.index_middle_pinch
     state: any
     action: cursor.toggle_mode
@@ -33,13 +29,17 @@ bindings:
     state: any
     action: media.mute_toggle
 
-  - gesture: gesture.volume_up_hold
+    - gesture: gesture.volume_up_hold
     state: any
     action: media.volume_up
 
   - gesture: gesture.volume_down_hold
     state: any
     action: media.volume_down
+
+  - gesture: gesture.vulcan_salute
+    state: any
+    action: app.quit
 
   - gesture: gesture.open_palm_hold
     state: any
@@ -49,12 +49,12 @@ bindings:
     state: any
     action: camera.screenshot
 
-  - gesture: gesture.call_sign
-    state: any
-    action: call.start
-    params:
-      number: "+919845103863"
-      mode: audio
+  #- gesture: gesture.call_sign
+  #  state: any
+  #  action: call.start
+  #  params:
+  #    number: "+919845103863"
+  #    mode: audio
 
   - gesture: gesture.two_finger_hold
     state: any

@@ -27,25 +27,25 @@ from aircontrol.tracking.hand_landmarks import (
 )
 
 
-class ThumbsUpSidewaysHoldDetector:
+class ThumbsUpDownHoldDetector:
     """
     Continuous hold detector for:
       - gesture.volume_up_hold   -> thumbs up
-      - gesture.volume_down_hold -> sideways thumb with fist
+      - gesture.volume_down_hold -> thumbs down
 
     Emits repeatedly while held steady.
     """
 
     def __init__(
         self,
-        hold_frames: int = 3,
-        repeat_every_frames: int = 3,
-        move_tol: float = 0.10,
-        min_detect_frames: int = 2,
-        thumb_up_y_margin: float = 0.08,
-        thumb_side_x_margin: float = 0.10,
-        thumb_side_y_limit: float = 0.06,
-        thumb_extend_margin: float = 0.03,
+        hold_frames: int = 2,
+        repeat_every_frames: int = 2,
+        move_tol: float = 0.12,
+        min_detect_frames: int = 1,
+        thumb_up_y_margin: float = 0.06,
+        thumb_down_y_margin: float = 0.06,
+        thumb_side_limit: float = 0.12,
+        thumb_extend_margin: float = 0.02,
     ):
         self.hold_frames = int(hold_frames)
         self.repeat_every_frames = int(repeat_every_frames)
@@ -53,8 +53,8 @@ class ThumbsUpSidewaysHoldDetector:
         self.min_detect_frames = int(min_detect_frames)
 
         self.thumb_up_y_margin = float(thumb_up_y_margin)
-        self.thumb_side_x_margin = float(thumb_side_x_margin)
-        self.thumb_side_y_limit = float(thumb_side_y_limit)
+        self.thumb_down_y_margin = float(thumb_down_y_margin)
+        self.thumb_side_limit = float(thumb_side_limit)
         self.thumb_extend_margin = float(thumb_extend_margin)
 
         self._hold_counter = 0
@@ -87,7 +87,6 @@ class ThumbsUpSidewaysHoldDetector:
         if not self._thumb_extended(lms):
             return False
 
-        # thumb tip clearly above thumb MCP / IP
         thumb_tip = lms[THUMB_TIP]
         thumb_mcp = lms[THUMB_MCP]
         thumb_ip = lms[THUMB_IP]
@@ -97,12 +96,10 @@ class ThumbsUpSidewaysHoldDetector:
             and thumb_tip.y < thumb_ip.y
         )
 
-        # avoid confusing side-thumb with up-thumb
-        not_too_sideways = abs(thumb_tip.x - thumb_mcp.x) < self.thumb_side_x_margin
-
+        not_too_sideways = abs(thumb_tip.x - thumb_mcp.x) < self.thumb_side_limit
         return thumb_is_up and not_too_sideways
 
-    def _is_thumb_side(self, lms) -> bool:
+    def _is_thumbs_down(self, lms) -> bool:
         if not self._all_non_thumb_fingers_folded(lms):
             return False
         if not self._thumb_extended(lms):
@@ -110,19 +107,20 @@ class ThumbsUpSidewaysHoldDetector:
 
         thumb_tip = lms[THUMB_TIP]
         thumb_mcp = lms[THUMB_MCP]
+        thumb_ip = lms[THUMB_IP]
 
-        dx = abs(thumb_tip.x - thumb_mcp.x)
-        dy = abs(thumb_tip.y - thumb_mcp.y)
+        thumb_is_down = (
+            thumb_tip.y > thumb_mcp.y + self.thumb_down_y_margin
+            and thumb_tip.y > thumb_ip.y
+        )
 
-        side_pose = dx > self.thumb_side_x_margin and dy < self.thumb_side_y_limit
-        not_up = not (thumb_tip.y < thumb_mcp.y - self.thumb_up_y_margin)
-
-        return side_pose and not_up
+        not_too_sideways = abs(thumb_tip.x - thumb_mcp.x) < self.thumb_side_limit
+        return thumb_is_down and not_too_sideways
 
     def _classify(self, lms) -> Optional[str]:
         if self._is_thumbs_up(lms):
             return "gesture.volume_up_hold"
-        if self._is_thumb_side(lms):
+        if self._is_thumbs_down(lms):
             return "gesture.volume_down_hold"
         return None
 
@@ -173,7 +171,6 @@ class ThumbsUpSidewaysHoldDetector:
 
         self._hold_counter += 1
 
-        # first emit after hold_frames, then every repeat_every_frames
         if self._hold_counter >= self.hold_frames:
             offset = self._hold_counter - self.hold_frames
             if offset % self.repeat_every_frames == 0:
@@ -182,12 +179,10 @@ class ThumbsUpSidewaysHoldDetector:
         return []
 
 
-class VolumeHoldPlugin:
-    """Detector-only plugin."""
+class ThumbsUpDownHoldPlugin:
     def register(self, ctx: AppContext) -> PluginRegistration:
-        return PluginRegistration(detectors=[ThumbsUpSidewaysHoldDetector()], actions={})
+        return PluginRegistration(detectors=[ThumbsUpDownHoldDetector()], actions={})
 
 
 def plugin():
-    return VolumeHoldPlugin()
-    
+    return ThumbsUpDownHoldPlugin()
