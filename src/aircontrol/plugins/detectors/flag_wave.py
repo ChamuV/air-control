@@ -39,14 +39,14 @@ class FlagWaveDetector:
 
     def __init__(
         self,
-        hold_frames: int = 2,
+        hold_frames: int = 1,
         cooldown_frames: int = 6,
         tip_x_spread_max: float = 0.10,
         thumb_up_margin: float = 0.035,
         finger_open_x_margin: float = 0.035,
-        history_len: int = 5,
-        swipe_dx_threshold: float = 0.055,
-        instant_dx_threshold: float = 0.018,
+        history_len: int = 2,
+        swipe_dx_threshold: float = 0.040,
+        instant_dx_threshold: float = 0.012,
     ):
         self.hold_frames = int(hold_frames)
         self.cooldown_frames = int(cooldown_frames)
