@@ -9,6 +9,8 @@ from aircontrol.camera import Camera
 from aircontrol.tracking import HandTracker
 from aircontrol.cursor.controller import CursorController
 
+from aircontrol.config.gesture_priority import GesturePriority, PriorityResolver
+
 from aircontrol.actions.mouse_control import MouseController
 from aircontrol.actions.media_control import MediaControllerMacOS
 from aircontrol.actions.camera_screenshot_control import CameraScreenshotController
@@ -46,6 +48,9 @@ def main() -> None:
     plugins = default_plugins()
     engine, dispatcher = build_gesture_system(ctx, plugins)
 
+    priority_map = GesturePriority("src/aircontrol/config/gesture_priority.yaml")
+    resolver = PriorityResolver(priority_map)
+
     try:
         while True:
             frame = cam.get_frame()
@@ -62,7 +67,9 @@ def main() -> None:
                     px, py = pos
                     events.append(GestureEvent("cursor.move", {"x": px, "y": py}))
 
-            for event in events:
+            filtered_events = resolver.resolve(events)
+
+            for event in filtered_events:
                 dispatcher.dispatch(event)
                 print(f"[EVENT] {event.name}")
 
