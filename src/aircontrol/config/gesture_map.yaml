@@ -29,7 +29,7 @@ bindings:
     state: any
     action: media.mute_toggle
 
-    - gesture: gesture.volume_up_hold
+  - gesture: gesture.volume_up_hold
     state: any
     action: media.volume_up
 
@@ -49,13 +49,21 @@ bindings:
     state: any
     action: camera.screenshot
 
-  #- gesture: gesture.call_sign
-  #  state: any
-  #  action: call.start
-  #  params:
-  #    number: "+919845103863"
-  #    mode: audio
+  # - gesture: gesture.call_sign
+  #   state: any
+  #   action: call.start
+  #   params:
+  #     number: "+919845103863"
+  #     mode: audio
 
   - gesture: gesture.two_finger_hold
     state: any
     action: scroll.continuous
+
+  - gesture: gesture.flag_wave_right
+    state: any
+    action: window.left
+
+  - gesture: gesture.flag_wave_left
+    state: any
+    action: window.right

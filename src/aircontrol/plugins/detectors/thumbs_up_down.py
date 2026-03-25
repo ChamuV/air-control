@@ -1,4 +1,4 @@
-# plugins/detectors/thumbs_up_sideways_hold.py
+# plugins/detectors/thumbs_up_down.py
 
 from __future__ import annotations
 
