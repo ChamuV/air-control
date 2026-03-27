@@ -25,7 +25,7 @@ bindings:
     state: any
     action: cursor.toggle_mode
 
-  - gesture: gesture.multi_display_toggle
+  - gesture: gesture.open_palm_pinky_folded
     state: any
     action: cursor.toggle_multidisplay
 
