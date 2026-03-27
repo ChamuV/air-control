@@ -25,6 +25,10 @@ bindings:
     state: any
     action: cursor.toggle_mode
 
+  - gesture: gesture.multi_display_toggle
+    state: any
+    action: cursor.toggle_multidisplay
+
   - gesture: gesture.fist
     state: any
     action: media.mute_toggle
