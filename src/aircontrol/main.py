@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import cv2
 import pyautogui
 
@@ -48,7 +50,8 @@ def main() -> None:
     plugins = default_plugins()
     engine, dispatcher = build_gesture_system(ctx, plugins)
 
-    priority_map = GesturePriority("src/aircontrol/config/gesture_priority.yaml")
+    config_path = Path(__file__).resolve().parent / "config" / "gesture_priority.yaml"
+    priority_map = GesturePriority(str(config_path))
     resolver = PriorityResolver(priority_map)
 
     try:
