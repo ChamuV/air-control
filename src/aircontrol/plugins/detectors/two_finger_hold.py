@@ -141,6 +141,10 @@ class TwoFingerHoldDetector:
         if amount == 0:
             return []
 
+        # Advance baseline after each emitted step so held position
+        # does not repeatedly re-emit the same scroll amount.
+        self._baseline_y = y_pos
+
         # IMPORTANT: scrolling direction uses mode,
         # not dy sign (you wanted "if fully extended -> go up" etc.)
         return [
