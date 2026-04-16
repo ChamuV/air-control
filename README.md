@@ -66,25 +66,7 @@ Gesture behaviour is defined through configuration files:
 - Mapping: `src/aircontrol/config/gesture_map.yaml`
 - Priority: `src/aircontrol/config/gesture_priority.yaml`
 
-### Default Gesture Mappings
-
-The default gesture–action bindings are defined in `gesture_map.yaml` and include:
-
-| Gesture Event | Action |
-|--------------|--------|
-| `gesture.pinch` | `mouse.click` |
-| `gesture.middle_pinch` | `mouse.right_click` |
-| `gesture.ring_pinch.start/move/end` | `drag.start/move/end` |
-| `gesture.index_middle_pinch` | `cursor.toggle_mode` |
-| `gesture.fist` | `media.mute_toggle` |
-| `gesture.volume_up_hold` | `media.volume_up` |
-| `gesture.volume_down_hold` | `media.volume_down` |
-| `gesture.open_palm_hold` | `media.play_pause` |
-| `gesture.horizontal_yo` | `camera.screenshot` |
-| `gesture.two_finger_hold` | `scroll.continuous` |
-| `gesture.flag_wave_right` | `window.left` |
-| `gesture.flag_wave_left` | `window.right` |
-| `gesture.vulcan_salute` | `app.quit` |
+The following gestures are currently supported and mapped to system actions:
 
 ### Current Gesture Set
 
