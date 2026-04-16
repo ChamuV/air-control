@@ -18,7 +18,7 @@ class MouseDragCommandPlugin:
                 dragging = True
 
         def move_drag(event: GestureEvent):
-            # cursor movement is already handled by cursor.move
+            # actual dragging happens through cursor.move -> mouse.move_to()
             pass
 
         def end_drag(event: GestureEvent):

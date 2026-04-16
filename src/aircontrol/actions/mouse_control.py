@@ -6,15 +6,23 @@ import pyautogui
 class MouseController:
     def __init__(self, margin_px: int = 8):
         self.margin_px = int(margin_px)
+        self.dragging = False
 
-    def move_to(self, x, y):
+    def _clamp(self, x, y):
         sw, sh = pyautogui.size()
         m = self.margin_px
 
         cx = int(max(m, min(sw - 1 - m, x)))
         cy = int(max(m, min(sh - 1 - m, y)))
+        return cx, cy
 
-        pyautogui.moveTo(cx, cy)
+    def move_to(self, x, y):
+        cx, cy = self._clamp(x, y)
+
+        if self.dragging:
+            pyautogui.dragTo(cx, cy, duration=0, button="left")
+        else:
+            pyautogui.moveTo(cx, cy)
 
     def click(self):
         pyautogui.click()
@@ -23,15 +31,14 @@ class MouseController:
         pyautogui.click(button="right")
 
     def scroll(self, clicks: int):
-        """
-        Scroll vertically.
-        Positive -> scroll up
-        Negative -> scroll down
-        """
         pyautogui.scroll(int(clicks))
 
     def mouse_down(self):
-        pyautogui.mouseDown()
+        if not self.dragging:
+            pyautogui.mouseDown(button="left")
+            self.dragging = True
 
     def mouse_up(self):
-        pyautogui.mouseUp()
+        if self.dragging:
+            pyautogui.mouseUp(button="left")
+            self.dragging = False

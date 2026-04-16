@@ -4,8 +4,8 @@ profile: default
 
 priorities:
   gesture.vulcan_salute: 120
-  gesture.flag_wave_right: 100
-  gesture.flag_wave_left: 100
+  gesture.wrist_flick_right: 100
+  gesture.wrist_flick_left: 100
   gesture.volume_up_hold: 80
   gesture.volume_down_hold: 80
   gesture.fist: 70
@@ -18,4 +18,4 @@ priorities:
   gesture.ring_pinch.end: 90
   gesture.index_middle_pinch: 40
   gesture.horizontal_yo: 30
-  gesture.call_sign: 20
+  gesture.call_sign: 10

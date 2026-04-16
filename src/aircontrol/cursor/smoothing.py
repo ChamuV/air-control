@@ -1,7 +1,7 @@
 # src/aircontrol/cursor/smoothing.py
 
 class EMAFilter2D:
-    def __init__(self, alpha=0.18):
+    def __init__(self, alpha=0.15):
         self.alpha = float(alpha)
         self.prev_x = None
         self.prev_y = None

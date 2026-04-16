@@ -23,8 +23,9 @@ class GesturePriority:
 class PriorityResolver:
     def __init__(self, priority_map: GesturePriority):
         self.priority_map = priority_map
+        self.drag_active = False
 
-    def resolve(self, events):
+    def _resolve_normal(self, events):
         gesture_events = [e for e in events if e.name.startswith("gesture.")]
         other_events = [e for e in events if not e.name.startswith("gesture.")]
 
@@ -37,3 +38,42 @@ class PriorityResolver:
         )
 
         return [top] + other_events
+
+    def resolve(self, events):
+        if not events:
+            return []
+
+        gesture_events = [e for e in events if e.name.startswith("gesture.")]
+        other_events = [e for e in events if not e.name.startswith("gesture.")]
+        gesture_names = {e.name for e in gesture_events}
+
+        # If drag is already active, only allow drag lifecycle + cursor movement.
+        if self.drag_active:
+            allowed = []
+
+            for e in events:
+                if e.name in {
+                    "gesture.ring_pinch.move",
+                    "gesture.ring_pinch.end",
+                    "cursor.move",
+                }:
+                    allowed.append(e)
+
+            if "gesture.ring_pinch.end" in gesture_names:
+                self.drag_active = False
+
+            return allowed
+
+        # Normal priority resolution when not dragging
+        resolved = self._resolve_normal(events)
+
+        # If drag starts this frame, enter drag lock and suppress all other gestures.
+        resolved_names = {e.name for e in resolved}
+        if "gesture.ring_pinch.start" in resolved_names:
+            self.drag_active = True
+            return [
+                e for e in resolved
+                if e.name in {"gesture.ring_pinch.start", "cursor.move"}
+            ]
+
+        return resolved

@@ -63,10 +63,10 @@ bindings:
     state: any
     action: scroll.continuous
 
-  - gesture: gesture.flag_wave_right
-    state: any
-    action: window.left
-
-  - gesture: gesture.flag_wave_left
+  - gesture: gesture.wrist_flick_right
     state: any
     action: window.right
+  
+  - gesture: gesture.wrist_flick_left
+    state: any
+    action: window.left

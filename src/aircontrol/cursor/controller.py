@@ -15,9 +15,9 @@ class CursorController:
         mode_name: str = "index",
         enabled: bool = True,
         smoother=None,
-        deadzone_px: float = 5.0,
+        deadzone_px: float = 7.0,
         edge_padding_px: int = 1,
-        gain: float = 0.65,
+        gain: float = 0.5,
     ):
         if mode_name not in {"palm", "index"}:
             raise ValueError("mode_name must be 'palm' or 'index'")
@@ -31,7 +31,7 @@ class CursorController:
         self.index_mode = IndexCursorMode()
         self.palm_mode = PalmCursorMode()
 
-        self.smoother = smoother or EMAFilter2D(alpha=0.18)
+        self.smoother = smoother or EMAFilter2D(alpha=0.15)
 
         self.deadzone_px = float(deadzone_px)
         self.edge_padding_px = int(edge_padding_px)

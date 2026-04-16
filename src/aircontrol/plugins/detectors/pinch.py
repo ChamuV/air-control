@@ -9,7 +9,7 @@ from aircontrol.app_context import AppContext
 from aircontrol.tracking.hand_landmarks import THUMB_TIP, INDEX_TIP, dist
 
 class PinchDetector:
-    def __init__(self, threshold: float = 0.04, cooldown_frames: int = 8):
+    def __init__(self, threshold: float = 0.05, cooldown_frames: int = 4):
         self.threshold = float(threshold)
         self.cooldown_frames = int(cooldown_frames)
         self._cooldown = 0
