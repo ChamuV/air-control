@@ -13,9 +13,9 @@ priorities:
   gesture.two_finger_hold: 55
   gesture.pinch: 50
   gesture.middle_pinch: 50
-  gesture.ring_pinch.start: 50
-  gesture.ring_pinch.move: 50
-  gesture.ring_pinch.end: 50
+  gesture.ring_pinch.start: 90
+  gesture.ring_pinch.move: 90
+  gesture.ring_pinch.end: 90
   gesture.index_middle_pinch: 40
   gesture.horizontal_yo: 30
   gesture.call_sign: 20

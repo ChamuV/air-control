@@ -13,12 +13,15 @@ bindings:
     action: mouse.right_click
 
   - gesture: gesture.ring_pinch.start
+    state: any
     action: drag.start
 
   - gesture: gesture.ring_pinch.move
+    state: any
     action: drag.move
 
   - gesture: gesture.ring_pinch.end
+    state: any
     action: drag.end
 
   - gesture: gesture.index_middle_pinch
@@ -49,12 +52,12 @@ bindings:
     state: any
     action: camera.screenshot
 
-  # - gesture: gesture.call_sign
-  #   state: any
-  #   action: call.start
-  #   params:
-  #     number: "+919845103863"
-  #     mode: audio
+  - gesture: gesture.call_sign
+    state: any
+    action: call.start
+    params:
+      number: "+919845103863"
+      mode: audio
 
   - gesture: gesture.two_finger_hold
     state: any
