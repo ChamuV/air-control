@@ -4,8 +4,14 @@ __pycache__/
 .DS_Store
 
 # Ignore youtube files
-.youtube/
+youtube/
 
 # Ignore *.egg files
 *.egg
 *.egg-info/
+
+# Ignore project-specific directories and files
+youtube/
+captures/
+old_main.py
+test.py
