@@ -1,75 +1,157 @@
-# Air Control
+# AirControl
 
-Hand-gesture based laptop control using MediaPipe, OpenCV, and a plugin-driven event system.
+A modular, real-time gesture interface for controlling a computer using hand tracking.
 
-## Features
-- Real-time hand tracking from webcam.
-- Gesture detectors emit `gesture.*` events.
-- YAML maps gestures to actions.
-- Command plugins execute mouse/media/window/app actions.
-- Cursor controller supports mode toggling and smoothing.
+AirControl uses real-time hand tracking to interpret gestures and map them to system actions such as mouse input, media control, scrolling, and window navigation.
 
-## Requirements
-- Python 3.10+
-- Webcam
-- macOS recommended for media/window/call actions in this repo
+---
 
-## Setup
+## Overview
+
+AirControl is built as a modular, real-time pipeline:
+
+```
+Webcam → Hand tracking → Gesture detection → Gesture events → Priority resolution → Mapping → Command execution
+```
+
+Hand landmarks are extracted using Google’s MediaPipe framework and converted into higher-level gesture events. These events are then mapped to actions through a configurable system, allowing flexible control without modifying core logic.
+
+---
+
+## Key Features
+
+- Real-time hand tracking using MediaPipe
+- Event-based gesture detection (`gesture.*`)
+- Configurable gesture → action mappings (YAML)
+- Priority-based conflict resolution
+- Plugin-based architecture for detectors and commands
+- Cursor control with smoothing and mode switching
+
+---
+
+## Installation
+
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -e .
 ```
 
-Optional dev tools:
+Optional development tools:
+
 ```bash
-pip install -e ".[dev]"
+pip install -e "[dev]"
 ```
 
-## Run
+---
+
+## Usage
+
+Run the application:
+
 ```bash
 aircontrol
 ```
 
-Press:
-- `q` to quit
-- `t` to toggle cursor enable/disable
+Controls:
+- `q` → quit
+- `t` → toggle cursor control
 
-## Gesture Mapping
-Mappings live in `src/aircontrol/config/gesture_map.yaml`.
+---
 
-Current defaults include:
-- `gesture.pinch` -> `mouse.click`
-- `gesture.middle_pinch` -> `mouse.right_click`
-- `gesture.ring_pinch.start/move/end` -> `drag.start/move/end`
-- `gesture.index_middle_pinch` -> `cursor.toggle_mode`
-- `gesture.fist` -> `media.mute_toggle`
-- `gesture.volume_up_hold` -> `media.volume_up`
-- `gesture.volume_down_hold` -> `media.volume_down`
-- `gesture.open_palm_hold` -> `media.play_pause`
-- `gesture.horizontal_yo` -> `camera.screenshot`
-- `gesture.two_finger_hold` -> `scroll.continuous`
-- `gesture.flag_wave_right` -> `window.left`
-- `gesture.flag_wave_left` -> `window.right`
-- `gesture.vulcan_salute` -> `app.quit`
+## Gesture System
 
-Priority resolution is configured in `src/aircontrol/config/gesture_priority.yaml`.
+Gesture behaviour is defined through configuration files:
+
+- Mapping: `src/aircontrol/config/gesture_map.yaml`
+- Priority: `src/aircontrol/config/gesture_priority.yaml`
+
+### Default Gesture Mappings
+
+The default gesture–action bindings are defined in `gesture_map.yaml` and include:
+
+| Gesture Event | Action |
+|--------------|--------|
+| `gesture.pinch` | `mouse.click` |
+| `gesture.middle_pinch` | `mouse.right_click` |
+| `gesture.ring_pinch.start/move/end` | `drag.start/move/end` |
+| `gesture.index_middle_pinch` | `cursor.toggle_mode` |
+| `gesture.fist` | `media.mute_toggle` |
+| `gesture.volume_up_hold` | `media.volume_up` |
+| `gesture.volume_down_hold` | `media.volume_down` |
+| `gesture.open_palm_hold` | `media.play_pause` |
+| `gesture.horizontal_yo` | `camera.screenshot` |
+| `gesture.two_finger_hold` | `scroll.continuous` |
+| `gesture.flag_wave_right` | `window.left` |
+| `gesture.flag_wave_left` | `window.right` |
+| `gesture.vulcan_salute` | `app.quit` |
+
+### Current Gesture Set
+
+| Gesture | Action |
+|--------|--------|
+| Pinch | Left click |
+| Middle pinch | Right click |
+| Ring pinch (start/move/end) | Drag |
+| Index–middle pinch | Toggle cursor mode |
+| Fist | Toggle mute |
+| Volume up hold | Increase volume |
+| Volume down hold | Decrease volume |
+| Open palm hold | Play / pause media |
+| Horizontal yo | Screenshot |
+| Two-finger hold | Continuous scroll |
+| Flag wave right | Move window left |
+| Flag wave left | Move window right |
+| Vulcan salute | Quit application |
+
+---
+
+## Architecture
+
+AirControl is designed as a modular system with clear separation of responsibilities:
+
+- **Tracking**: Extract hand landmarks (MediaPipe)
+- **Detection**: Convert landmarks → gesture events
+- **Mapping**: Map gestures → actions (configurable)
+- **Priority**: Resolve conflicts between simultaneous gestures
+- **Commands**: Execute system-level actions
+
+This separation allows gestures, actions, and mappings to evolve independently.
+
+---
 
 ## Project Structure
-```text
+
+```
 src/aircontrol/
-  actions/      # action backends (mouse, media, window, screenshot, call)
-  camera/       # webcam wrapper
-  config/       # gesture map + priority config
-  cursor/       # cursor modes, mapping, smoothing, controller
-  gestures/     # engine, dispatcher, mapper, plugin interfaces
+  actions/      # system actions (mouse, media, window, etc.)
+  camera/       # webcam interface
+  config/       # gesture mapping + priority config
+  cursor/       # cursor modes, smoothing, controller
+  gestures/     # event system, dispatcher, mapper
   plugins/
     detectors/  # gesture detectors
-    commands/   # action command handlers
-  tracking/     # MediaPipe hand tracking
-  main.py       # app entrypoint
+    commands/   # action handlers
+  tracking/     # MediaPipe integration
+  main.py       # entrypoint
 ```
 
+---
+
 ## Notes
-- Some actions are OS-specific (currently macOS-oriented).
-- If a plugin fails to load, startup logs will print the module and error.
+
+- Some features are currently macOS-specific (media and window control).
+- If a plugin fails to load, errors will be shown in the startup logs.
+
+---
+
+## Future Improvements
+
+- Improve gesture robustness and stability
+- Refine smoothing and interaction responsiveness
+- Expand cross-platform support
+- Add more gesture primitives and composite gestures
+
+## License
+
+This project is licensed under the MIT License.
