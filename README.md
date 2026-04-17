@@ -1,3 +1,5 @@
+[![CI](https://github.com/ChamuV/air-control/actions/workflows/ci.yml/badge.svg)](https://github.com/ChamuV/air-control/actions)
+
 # AirControl
 
 A modular, real-time gesture interface for controlling a computer using hand tracking.
