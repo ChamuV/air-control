@@ -13,7 +13,19 @@ AirControl uses real-time hand tracking to interpret gestures and map them to sy
 AirControl is built as a modular, real-time pipeline:
 
 ```
-Webcam → Hand tracking → Gesture detection → Gesture events → Priority resolution → Mapping → Command execution
+Webcam input
+    ↓
+MediaPipe landmark extraction
+    ↓
+Gesture detection
+    ↓
+Gesture events
+    ↓
+Priority resolution (conflict handling + locks)
+    ↓
+Gesture mapping (config-driven)
+    ↓
+Command execution (mouse / media / system)
 ```
 
 Hand landmarks are extracted using Google’s MediaPipe framework and converted into higher-level gesture events. These events are then mapped to actions through a configurable system, allowing flexible control without modifying core logic.
