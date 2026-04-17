@@ -1,5 +1,8 @@
 # tests/integration/test_main_loop_smoke.py
 
+import sys
+from types import SimpleNamespace
+
 from aircontrol.gestures.events import GestureEvent
 import aircontrol.main as main_mod
 
@@ -83,7 +86,9 @@ def test_main_runs_one_iteration_and_cleans_up(monkeypatch):
     state["engine"] = engine
     state["dispatcher"] = dispatcher
 
-    monkeypatch.setattr(main_mod.pyautogui, "size", lambda: (1920, 1080))
+    fake_pyautogui = SimpleNamespace(size=lambda: (1920, 1080))
+    monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
+
     monkeypatch.setattr(main_mod.cv2, "waitKey", lambda _: ord("q"))
     monkeypatch.setattr(main_mod, "Camera", DummyCamera)
     monkeypatch.setattr(main_mod, "HandTracker", DummyTracker)
