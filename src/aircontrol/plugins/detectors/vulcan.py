@@ -18,10 +18,6 @@ from aircontrol.tracking.hand_landmarks import (
     RING_MCP,
     PINKY_TIP,
     PINKY_MCP,
-    INDEX_TIP,
-    MIDDLE_TIP,
-    RING_TIP,
-    PINKY_TIP,
     PALM_POINTS,
     dist,
 )

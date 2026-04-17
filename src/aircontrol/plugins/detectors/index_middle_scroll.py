@@ -8,7 +8,7 @@ from aircontrol.gestures.events import GestureEvent
 from aircontrol.gestures.plugin_base import PluginRegistration
 from aircontrol.app_context import AppContext
 
-from aircontrol.tracking.hand_landmarks import THUMB_TIP, INDEX_TIP, MIDDLE_TIP, dist
+from aircontrol.tracking.hand_landmarks import INDEX_TIP, MIDDLE_TIP, dist
 
 
 class IndexMiddleScrollDetector:

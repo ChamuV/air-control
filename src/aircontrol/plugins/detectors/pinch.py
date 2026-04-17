@@ -1,7 +1,5 @@
 # src/aircontrol/plugins/detectors/pinch.py
 
-import math
-
 from aircontrol.gestures.events import GestureEvent
 from aircontrol.gestures.plugin_base import PluginRegistration
 from aircontrol.app_context import AppContext

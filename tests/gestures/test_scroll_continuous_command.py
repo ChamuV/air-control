@@ -19,6 +19,9 @@ def test_scroll_continuous_defaults_to_positive_one():
     plugin = ScrollContinuousCommandPlugin()
     registration = plugin.register(ctx)
 
+    # MUST start scroll first
+    registration.actions["scroll.start"](GestureEvent("scroll.start", {}))
+
     registration.actions["scroll.continuous"](GestureEvent("scroll.continuous", {}))
 
     assert ctx.mouse.calls == [1]
@@ -28,6 +31,9 @@ def test_scroll_continuous_direction_down_inverts_sign():
     ctx = SimpleNamespace(mouse=DummyMouse())
     plugin = ScrollContinuousCommandPlugin()
     registration = plugin.register(ctx)
+
+    # MUST start scroll first
+    registration.actions["scroll.start"](GestureEvent("scroll.start", {}))
 
     registration.actions["scroll.continuous"](
         GestureEvent("scroll.continuous", {"direction": "down", "amount": 7})
