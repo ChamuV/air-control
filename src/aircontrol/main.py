@@ -5,7 +5,6 @@ from __future__ import annotations
 from pathlib import Path
 
 import cv2
-import pyautogui
 
 from aircontrol.camera import Camera
 from aircontrol.tracking import HandTracker
@@ -24,6 +23,8 @@ from aircontrol.plugins import default_plugins
 
 
 def main() -> None:
+    import pyautogui
+
     screen_w, screen_h = pyautogui.size()
 
     cam = Camera()
