@@ -4,18 +4,20 @@ profile: default
 
 priorities:
   gesture.vulcan_salute: 120
-  gesture.wrist_flick_right: 100
-  gesture.wrist_flick_left: 100
+  gesture.middle_pinch_swipe_left: 95
+  gesture.middle_pinch_swipe_right: 95
   gesture.volume_up_hold: 80
   gesture.volume_down_hold: 80
-  gesture.fist: 70
+  gesture.fist: 75
   gesture.open_palm_hold: 60
-  gesture.two_finger_hold: 55
   gesture.pinch: 50
   gesture.middle_pinch: 50
   gesture.ring_pinch.start: 90
   gesture.ring_pinch.move: 90
   gesture.ring_pinch.end: 90
-  gesture.index_middle_pinch: 40
   gesture.horizontal_yo: 30
   gesture.call_sign: 10
+  gesture.pinky_pinch: 40
+  gesture.index_middle_scroll.start: 85
+  gesture.index_middle_scroll.move: 85
+  gesture.index_middle_scroll.end: 85

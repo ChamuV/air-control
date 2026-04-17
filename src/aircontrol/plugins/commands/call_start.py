@@ -17,7 +17,7 @@ class CallStartCommandPlugin:
     def register(self, ctx: AppContext) -> PluginRegistration:
 
         def call_action(event: GestureEvent) -> None:
-            number = event.payload.get("number", "+919845103831")
+            number = event.payload.get("number", "+911234567890")
             mode = event.payload.get("mode", "video")
 
             facetime = FaceTimeControllerMacOS(

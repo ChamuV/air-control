@@ -26,7 +26,7 @@ from aircontrol.tracking.hand_landmarks import (
 
 class FistDetector:
     """
-    Closed fist detector (all four fingers folded; optional thumb folded check).
+    Closed fist detector (all four fingers folded; thumb folded required).
     Emits: gesture.fist
     """
 
@@ -36,13 +36,17 @@ class FistDetector:
         cooldown_frames: int = 2,
         move_tol: float = 0.10,
         min_detect_frames: int = 2,
-        require_thumb_folded: bool = False,
+        require_thumb_folded: bool = True,
+        folded_margin: float = 0.03,
+        thumb_fold_x_tol: float = 0.04,
     ):
         self.hold_frames = int(hold_frames)
         self.cooldown_frames = int(cooldown_frames)
         self.move_tol = float(move_tol)
         self.min_detect_frames = int(min_detect_frames)
         self.require_thumb_folded = bool(require_thumb_folded)
+        self.folded_margin = float(folded_margin)
+        self.thumb_fold_x_tol = float(thumb_fold_x_tol)
 
         self._hold_counter = 0
         self._cooldown = 0
@@ -56,10 +60,10 @@ class FistDetector:
         return (sum(xs) / len(xs), sum(ys) / len(ys))
 
     def _finger_folded(self, lms, tip: int, mcp: int) -> bool:
-        return lms[tip].y >= lms[mcp].y
+        return lms[tip].y >= lms[mcp].y + self.folded_margin
 
     def _thumb_folded(self, lms) -> bool:
-        return abs(lms[THUMB_TIP].x - lms[THUMB_MCP].x) < 0.04
+        return abs(lms[THUMB_TIP].x - lms[THUMB_MCP].x) < self.thumb_fold_x_tol
 
     def update(self, hand_landmarks) -> list[GestureEvent]:
         if hand_landmarks is None:
@@ -86,7 +90,6 @@ class FistDetector:
         gesture = all_folded and thumb_ok
 
         if not gesture:
-            # release -> rearm
             self._armed = True
             self._hold_counter = 0
             self._detect_streak = 0
@@ -125,7 +128,6 @@ class FistDetector:
 
 
 class FistPlugin:
-    """Detector-only plugin."""
     def register(self, ctx: AppContext) -> PluginRegistration:
         return PluginRegistration(detectors=[FistDetector()], actions={})
 

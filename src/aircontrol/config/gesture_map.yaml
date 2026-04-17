@@ -22,11 +22,7 @@ bindings:
 
   - gesture: gesture.ring_pinch.end
     state: any
-    action: drag.end
-
-  - gesture: gesture.index_middle_pinch
-    state: any
-    action: cursor.toggle_mode
+    action: drag.end 
 
   - gesture: gesture.fist
     state: any
@@ -56,17 +52,29 @@ bindings:
     state: any
     action: call.start
     params:
-      number: "+919845103863"
+      number: "+911234567890"
       mode: audio
 
-  - gesture: gesture.two_finger_hold
+  - gesture: gesture.pinky_pinch
+    state: any
+    action: cursor.toggle_mode
+
+  - gesture: gesture.index_middle_scroll.start
+    state: any
+    action: scroll.start
+
+  - gesture: gesture.index_middle_scroll.move
     state: any
     action: scroll.continuous
 
-  - gesture: gesture.wrist_flick_right
+  - gesture: gesture.index_middle_scroll.end
     state: any
-    action: window.right
-  
-  - gesture: gesture.wrist_flick_left
+    action: scroll.end
+
+  - gesture: gesture.middle_pinch_swipe_left
     state: any
     action: window.left
+  
+  - gesture: gesture.middle_pinch_swipe_right
+    state: any
+    action: window.right

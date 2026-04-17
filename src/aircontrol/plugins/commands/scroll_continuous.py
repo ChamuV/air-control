@@ -8,23 +8,37 @@ from aircontrol.gestures.plugin_base import PluginRegistration
 
 
 class ScrollContinuousCommandPlugin:
-    """Command-only plugin: scroll.continuous"""
-    def register(self, ctx: AppContext) -> PluginRegistration:
+    def register(self, ctx: AppContext):
+        scrolling = False
+
+        def scroll_start(event: GestureEvent) -> None:
+            nonlocal scrolling
+            scrolling = True
 
         def scroll_action(event: GestureEvent) -> None:
-            direction = event.payload.get("direction")
-            amount = int(event.payload.get("amount", 1))
+            nonlocal scrolling
+            if not scrolling:
+                return
 
-            # Keep your existing convention:
-            # ctx.mouse.scroll(positive) scrolls up, negative scrolls down (PyAutoGUI style)
+            direction = event.payload.get("direction", "up")
+            amount = max(1, int(event.payload.get("amount", 1)))
+
             if direction == "down":
                 ctx.mouse.scroll(-amount)
             else:
                 ctx.mouse.scroll(amount)
 
+        def scroll_end(event: GestureEvent) -> None:
+            nonlocal scrolling
+            scrolling = False
+
         return PluginRegistration(
             detectors=[],
-            actions={"scroll.continuous": scroll_action},
+            actions={
+                "scroll.start": scroll_start,
+                "scroll.continuous": scroll_action,
+                "scroll.end": scroll_end,
+            },
         )
 
 

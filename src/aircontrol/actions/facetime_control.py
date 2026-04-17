@@ -14,14 +14,14 @@ class FaceTimeControllerMacOS:
         audio -> facetime-audio://
 
     Example number format:
-        "+919845103831"
+        "+911234567890"
 
     Requires:
         FaceTime installed
         Accessibility permission for Python host
     """
 
-    def __init__(self, phone_number_str: str = "+919845103831", mode: str = "video"):
+    def __init__(self, phone_number_str: str = "+911234567890", mode: str = "video"):
         self.phone_number = str(phone_number_str)
         self.mode = mode
 

@@ -2,7 +2,7 @@
 
 from types import SimpleNamespace
 
-from aircontrol.plugins.detectors.two_finger_hold import TwoFingerHoldDetector
+from aircontrol.plugins.detectors.index_middle_scroll import TwoFingerHoldDetector
 
 
 def make_hand(index_tip_y: float, middle_tip_y: float):
